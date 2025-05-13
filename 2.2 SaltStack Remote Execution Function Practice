@@ -1,0 +1,80 @@
+2.2.1 Specifying the Target
+In this lab, test.ping is used to practice multiple methods of specifying targets.
+Requirement 1: Check whether the communication between all minions and the master is
+normal.
+Command: salt '*' test.ping
+Requirement 2: Check whether the communication between all minions whose IDs start
+with Nginx but do not contain Nginx1 and the master is normal.
+Command: salt 'Nginx[!1]' test.ping
+⚫ Question: Why is the Zabbix host not displayed in Requirement 1?
+Answer: Zabbix is not a minion host but a host managed in SSH mode.
+⚫ Question: Can grains be used to specify a host?
+Answer: Yes. Use the -G option when running the command. For example, to test
+whether the minion whose IP address is 192.168.1.14 communicates with the master, run
+the salt -G 'ipv4:192.168.1.14' test.pin command, as shown in the following figure.
+2.2.2 Practice of Remote Execution Function Modules – cmd
+Run the ip addr command for Nginx1 and Nginx2 in list mode. The command is as
+follows:
+[root@SaltStack master.d]# salt -L 'Nginx1,Nginx2' cmd.run "ip addr"
+⚫ Question: Does cmd.run support all commands?
+Answer: When cmd.run is used, the minion must support the command to be executed.
+As shown in the following figure, when the host command is executed on the minion, the
+system displays a message indicating that the command is not found.
+
+2.2.3 Practice of Remote Execution Function Modules – pkg
+Run the following command to list information about the Yum repository on Nginx1:
+[root@SaltStack master.d]# salt Nginx1 pkg.list_repos
+
+
+Run the following command to list NGINX of the latest version that can be installed on
+Nginx1 using the current Yum repository:
+[root@SaltStack master.d]# salt Nginx1 pkg.available_version nginx
+
+
+Run the following command to install NGINX for Nginx1 and Nginx2:
+[root@SaltStack master.d]# salt 'Nginx*' pkg.install nginx
+
+
+Run the following command to check whether NGINX has been installed:
+[root@SaltStack master.d]# salt 'Nginx*' cmd.run "nginx -v"
+
+
+2.2.4 Practice of Remote Execution Function Modules – service
+Run the following command to check whether the NGINX service on Nginx1 and Nginx2
+is available:
+[root@SaltStack master.d]# salt 'Nginx*' service.available nginx
+
+
+Run the following command to set the NGINX service on Nginx1 and Nginx2 to
+automatically start upon system startup:
+[root@SaltStack master.d]# salt 'Nginx*' service.enable nginx
+
+Run the following command to check whether the automatic startup of NGINX is enabled
+upon system startup:
+[root@SaltStack master.d]# salt 'Nginx*' service.enabled Nginx
+
+
+Alternatively, run the following command:
+[root@SaltStack master.d]# salt 'Nginx*' service.disabled Nginx
+
+Run the following command to start NGINX:
+[root@SaltStack ~]# salt 'Nginx*' service.start nginx
+
+
+
+2.2.5 Practice of Remote Execution Function Modules – network
+Run network.connect to test whether Nginx1 and Nginx2 can access each other's NGINX
+service port (80). Before the test, run the following command to obtain the IP addresses
+of Nginx1 and Nginx2:
+[root@SaltStack ~]# salt "*" network.ipaddrs
+
+Run the following command to test whether Nginx1 can access the NGINX service of
+Nginx2:
+[root@SaltStack ~]# salt Nginx1 network.connect 192.168.1.15 80
+
+Use the same method to test whether Nginx2 can access the NGINX service of Nginx1.
+[root@SaltStack ~]# salt Nginx2 network.connect 192.168.1.14 80
+
+
+
+

@@ -1,0 +1,44 @@
+Step 1 Create the /data/Nginx directory.
+Run the following command to create the /data/Nginx directory:
+[root@SaltStack ~]# salt "*" file.mkdir /data/Nginx
+
+
+Step 2 Create index.html.
+Run the following command to create the index.html file:
+[root@SaltStack ~]# salt "*" file.touch /data/Nginx/index.html
+
+
+Step 3 Add content to the page.
+Run the following command to add content to index.html:
+[root@SaltStack ~]# salt '*' file.append /data/Nginx/index.html "hello, $HOSTNAME"
+
+
+Step 4 Modify the NGINX configurations.
+Run the following command to create the test.conf configuration file in the Nginx
+configuration directory:
+[root@SaltStack ~]# salt "*" file.touch /etc/nginx/conf.d/test.conf
+
+
+Enter the following content in the configuration file:
+[root@SaltStack ~]# salt '*' file.append /etc/nginx/conf.d/test.conf \
+> "server {" \
+> " root /data/Nginx;" \
+> " index index.html;" \
+> "}"
+
+
+Step 5 Reload the NGINX service.
+Run the following command to reload the NGINX service:
+[root@SaltStack ~]# salt '*' service.reload nginx
+
+
+After the preceding operations are complete, check whether the configuration takes
+effect.
+⚫ Question: Is the page displayed as expected?
+Answer: No. The host names of Nginx1 and Nginx2 are not displayed on the page. The
+host name of the master is displayed. The reason is that the master converts variables 
+
+
+and then sends them to the minion. To achieve the expected effect, you are advised to
+use the Jinja template to invoke the grains value.
+

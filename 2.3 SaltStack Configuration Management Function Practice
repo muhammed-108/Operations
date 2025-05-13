@@ -1,0 +1,116 @@
+2.3.1 Configuration Management Script Practice
+Requirement: The SaltStack management script is used to complete the requirement in
+section 2.2.6 on Nginx1.
+Step 1 Modify the configuration file.
+Cancel the configuration of the file_roots parameter on the master node, as shown in
+the following figure.
+Create the directory in the configuration.
+Run the systemctl restart salt-master command to restart the service.
+
+
+Step 2 Compose the SLS file.
+Create the nginx.sls file in /srv/salt and enter the following content:
+---
+nginx_install:
+ pkg.installed:
+ - name: nginx
+create_test:
+ file.touch:
+ - name: /etc/nginx/conf.d/test.conf
+config_test:
+ file.append:
+ - name: /etc/nginx/conf.d/test.conf
+ - text:
+ - "server {"
+ - " root /data/Nginx;"
+ - " index index.html;"
+ - "}"
+create_root_dir:
+ file.directory:
+- name: /data/Nginx
+ - makedirs: True
+create_index:
+ file.touch:
+ - name: /data/Nginx/index.html
+config_index:
+ file.append:
+ - name: /data/Nginx/index.html
+ - text: hello,{{ grains['host'] }}
+ - template: jinja
+enable_nginx:
+ service.running:
+ - name: nginx
+ - enable: True
+ - reload: True
+
+
+
+Step 3 Run the configuration management script.
+Run the following command to execute the script compiled in step 2:
+[root@SaltStack salt]# salt Nginx1 state.sls nginx
+If the command is successfully executed, the system returns the number of Succeeded
+records, as shown in the following figure.
+⚫ Task: Compile a configuration script to install Apache on Nginx2 and place the home
+page in /data/Apache. The home page content is "hello, host name".
+Answer: The SLS script for reference is as follows:
+---
+apache_install:
+ pkg.installed:
+ - name: httpd
+create_test:
+ file.touch:
+ - name: /etc/httpd/conf.d/test.conf
+config_test:
+ file.append:
+ - name: /etc/httpd/conf.d/test.conf
+ - text:
+ - DocumentRoot "/data/apache"
+ - '<Directory "/data/apache">'
+- ' AllowOverride None'
+ - ' Require all granted'
+ - '</Directory>'
+modify_default_config:
+ file.replace:
+ - name: /etc/httpd/conf/httpd.conf
+ - pattern: 'DocumentRoot "/var/www/html"'
+ - repl: '#DocumentRoot "/var/www/html"'
+create_root_dir:
+ file.directory:
+ - name: /data/apache
+ - makedirs: True
+create_index:
+ file.touch:
+ - name: /data/apache/index.html
+config_index:
+ file.append:
+ - name: /data/apache/index.html
+ - text: hello,{{ grains['host'] }}
+ - template: jinja
+enable_apache:
+ service.running:
+ - name: httpd
+ - enable: True
+- reload: True
+
+
+2.3.2 Composing the top.sls File
+Requirement: Install the NGINX service on the minion whose host name is Nginx1, and
+install the Apache service on the minion whose host name is Nginx2.
+Create the top.sls file in /srv/salt and enter the following content:
+base:
+ 'host:Nginx1':
+ - match: grain
+ - nginx
+ 'host:Nginx2':
+ - match: grain
+- apache
+Save the file and run the following command to test the top.sls file:
+[root@SaltStack salt]# salt "*" state.highstate test=True
+
+
+If the test is successful, run the top.sls file to complete the requirement.
+
+
+
+
+

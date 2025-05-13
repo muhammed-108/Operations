@@ -1,0 +1,25 @@
+Requirement: The Zabbix host is managed by the master in SSH mode.
+Add the following content about the Zabbix host to /etc/salt/roster:
+Zabbix:
+ host: 192.168.1.4
+ user: root
+ port: 22
+
+
+Modify the SSH configuration file /etc/ssh/ssh_config on the Zabbix host by changing
+StrictHostKeyChecking from ask to no, as shown in the following figure.
+
+
+After the modification, run the systemctl restart sshd command to restart the SSH
+service.
+Then, run the following commands to configure SSH mutual trust between the hosts,
+SaltStack and Zabbix:
+ssh-keygen
+ssh-copy-id 192.168.1.4
+After the configuration is complete, run the following command to check whether the
+communication between the two hosts is normal:
+salt-ssh Zabbix test.ping
+Authentication is required for the first connection. Enter the password as prompted. If the
+connection is normal, the following information is displayed:
+
+

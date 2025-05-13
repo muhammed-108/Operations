@@ -1,0 +1,83 @@
+2.1.1 Installing salt-master and salt-minion
+Step 1 Configure a Yum repository.
+Log in to all hosts (192.168.1.60 is called SaltStack) and run the following commands to
+configure the Yum repository required by SaltStack:
+rpm --import https://repo.saltproject.io/salt/py3/redhat/8/x86_64/latest/SALTSTACK-GPG-KEY.pub
+curl -fsSL https://repo.saltproject.io/salt/py3/redhat/8/x86_64/latest.repo | sudo tee
+/etc/yum.repos.d/salt.repo
+The following figure shows the details
+
+Step 2 Install salt-master.
+Run the following command to install salt-master on the host SaltStack:
+yum install salt-master -y
+
+The following figure shows an example.
+
+After the installation is complete, run the following command to start salt-master and set
+it to start upon system startup:
+systemctl enable salt-master --now
+
+
+Run the following command to install salt-ssh. The Zabbix host is managed using SSH,
+and the Nginx1 and Nginx2 hosts are managed using salt-minion.
+yum install salt-ssh -y
+
+
+Step 3 Configure salt-master.
+Create the master.conf file in the /etc/salt/master.d directory on the host SaltStack and
+enter the following content:
+interface: 0.0.0.0
+publish_port: 4505
+ret_port: 4506
+pki_dir: /etc/salt/pki/master
+file_roots:
+ base:
+ - /srv/salt/
+pillar_roots:
+ base:
+ - /srv/pillar
+Restart the salt-master service and check the service status. If any error occurs, rectify the
+fault before proceeding to the next step.
+
+
+Step 4 Install salt-minion.
+On Nginx1 and Nginx2, run the following command to install salt-minion:
+yum install salt-minion -y
+The following figure shows an example.
+
+
+After the installation is complete, run the following command to start salt-minion and set
+it to start upon system startup:
+systemctl enable salt-minion --now
+
+
+
+Step 5 Configure salt-minion.
+Create the minion.conf file in the /etc/salt/minion.d directory on the host Nginx1 and
+enter the following content:
+master: 192.168.1.60
+id: Nginx1
+
+Create the minion.conf file in the /etc/salt/minion.d directory on the host Nginx2 and
+enter the following content:
+master: 192.168.1.60
+id: Nginx2
+After the configuration is complete, restart the salt-minion service on the two hosts and
+ensure that the service is running properly.
+
+2.1.2 Configuring the Master and Minion Authentication
+Run the salt-key command on the master node to check whether the public key sent by
+the minion is received. If the public key is received, the following informa is displayed:
+
+
+Run the salt-key -A command to receive all keys. The details are as follows:
+
+
+After the keys are received, run the following command to check whether the
+communication between the master and minion is normal:
+salt "*" test.ping
+If the communication is normal, the following information is displayed:
+
+
+
+
